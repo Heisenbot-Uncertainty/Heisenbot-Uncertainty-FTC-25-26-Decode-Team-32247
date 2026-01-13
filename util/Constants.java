@@ -3,11 +3,11 @@ package org.firstinspires.ftc.teamcode.util;
 public class Constants {
     public static final double WHEEL_POWER_TINY = .5;
     public static final double WHEEL_POWER_LARGE = 1;
-    public static final double INTAKE_POWER = 1;
-    public static final double CANNON_POWER_CLOSE = 0;
+    public static final double INTAKE_POWER = .75;
+    public static final double CANNON_POWER_CLOSE = -.555;
     public static final double CANNON_POWER_FAR = -.7215;
     public static final double LOAD_SERVO_MIN_POS = 0;
-    public static final double LOAD_SERVO_MAX_POS = .5;
+    public static final double LOAD_SERVO_MAX_POS = .525;
     public static final int ENCODERS_PER_DECIMETER = 156;
     public static final int ENCODERS_PER_DEGREE = 11;
     
@@ -27,11 +27,11 @@ public class Constants {
     public static final double BLUE_FAR_Y = 113.835555;
     public static final double BLUE_FAR_YAW = 31.155;
     
-    public static final double RED_FAR_RANGE = 110;
+    public static final double RED_FAR_RANGE = 114;
     public static final double RED_FAR_X = -4.4855;
     public static final double RED_FAR_Y = 109.8555;
     public static final double RED_FAR_YAW = -30.4555;
 
     public static final double APRIL_TAG_ERROR_THRESHOLD = 2;
-    public static final double APRIL_TAG_YAW_ERROR_THRESHOLD = 6; // This POS needs to feel special
+    public static final double APRIL_TAG_YAW_ERROR_THRESHOLD = 5; // This POS needs to feel special
 }

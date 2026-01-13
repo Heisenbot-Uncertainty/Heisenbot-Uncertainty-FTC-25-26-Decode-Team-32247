@@ -1,6 +1,30 @@
+/*
+  Copyright 2026 FIRST Tech Challenge Team 32247 FTC
+ 
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+ 
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+ 
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+ */
+
 package org.firstinspires.ftc.teamcode.opmodes;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.robot.Robot;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -14,14 +38,20 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import java.util.List;
 
-@TeleOp(name = "TeleOp Main", group = "TeleOp")
-public class TeleOpMain extends LinearOpMode {
+
+
+@Autonomous
+public class AutoFarRed extends LinearOpMode {
+
+    private Robot robot;
+
+    private DcMotor leftRear, rightRear, leftFront, rightFront;
+    private DcMotor intakeMotor, cannonMotor;
+    private Servo loadingServo;
     
-    private org.firstinspires.ftc.teamcode.robot.Robot robot;
     double wheelPowerTiny;
     double wheelPowerLarge;
     double intakePower;
@@ -52,16 +82,8 @@ public class TeleOpMain extends LinearOpMode {
     boolean toggle;
     boolean abort = false;
     int targetID = 24;
-    
-    public boolean goalTagDetected() {
-    List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-    for (AprilTagDetection detection : detections) {
-        if (detection.id == targetID && detection.ftcPose != null) {
-            return true;
-        }
-    }
-    return false;
-}
+
+    int goalColor = 24;
 
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
@@ -69,8 +91,50 @@ public class TeleOpMain extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+
         robot = new org.firstinspires.ftc.teamcode.robot.Robot(hardwareMap);
-        wheelPowerTiny = Constants.WHEEL_POWER_TINY;
+
+        leftRear   = hardwareMap.get(DcMotor.class, "leftRear");
+        rightRear  = hardwareMap.get(DcMotor.class, "rightRear");
+        leftFront  = hardwareMap.get(DcMotor.class, "leftFront");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+
+        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        cannonMotor = hardwareMap.get(DcMotor.class, "cannonMotor");
+        loadingServo = hardwareMap.get(Servo.class, "loadingServo");
+
+        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+
+        rightRear.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+
+        leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        cannonMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        cannonMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftRear.setTargetPosition(0);
+        rightRear.setTargetPosition(0);
+        leftFront.setTargetPosition(0);
+        rightFront.setTargetPosition(0);
+
+        leftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        
+        cannonMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+wheelPowerTiny = Constants.WHEEL_POWER_TINY;
         wheelPowerLarge = Constants.WHEEL_POWER_LARGE;
         intakePower = Constants.INTAKE_POWER;
         cannonPowerClose = Constants.CANNON_POWER_CLOSE;
@@ -96,122 +160,68 @@ public class TeleOpMain extends LinearOpMode {
         redFarX = Constants.RED_FAR_X;
         redFarY = Constants.RED_FAR_Y;
         redFarYaw = Constants.RED_FAR_YAW;
-        
-        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
-        robot.cannon.reset();
-        
+
+
+
         initializeVisionPortal();
-          
+
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+
         waitForStart();
-        while (opModeIsActive()) {
-            
-            if (gamepad2.left_bumper) {
-                shootDemBalls("close");
-            }
-            telemetry.addData("targetID", targetID);
-            targetToggle();
-            wheelMath();
-            intakeTrigger();
-            colorSensorMath();
-            if (debugMode == true) {
-                displayVisionPortalData();
-            }
-            findThatWhale();
-            
-            if (gamepad2.dpad_up) {
-                if (targetID == 20) {
-                    robot.drive.moveTank(1, .5, 2);
-                    robot.drive.moveStrafe(-2, .5, 2);
-                    robot.drive.moveTurn(-20, .5, 2);
-                }
-            }
-            
-            
-            
-            telemetry.update();
+
+        if (opModeIsActive()) {
+            sleep(5000);
+            robot.drive.moveTank(3, .5, 3);
+            robot.drive.moveTurn(22, .5, 3);
+            robot.drive.moveStrafe(2, .5, 3);
+            shootDemBalls("far");
+            sleep(5000);
+            shootDemBalls("far");
         }
     }
-    public void wheelMath() {
-        if (gamepad1.dpad_up) {
-                robot.drive.setPower(wheelPowerTiny, wheelPowerTiny, wheelPowerTiny, wheelPowerTiny);
-            } else if (gamepad1.dpad_down) {
-                robot.drive.setPower(-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny);
-            } else if (gamepad1.dpad_left) {
-                robot.drive.setPower(wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,wheelPowerTiny);
-            } else if (gamepad1.dpad_right) {
-                robot.drive.setPower(-wheelPowerTiny,wheelPowerTiny,wheelPowerTiny,-wheelPowerTiny);
-            } else {
-                robot.drive.setPower(
-                (wheelPowerLarge*(-(gamepad1.right_stick_y - (-gamepad1.right_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.left_stick_y + (-gamepad1.left_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.right_stick_y + (-gamepad1.right_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.left_stick_y - (-gamepad1.left_stick_x))))
-                );
-        }
-    }
-    
-    public void intakeTrigger() {
-        if (gamepad1.right_trigger > .1) {
-            robot.intake.setPower(intakePower);
-        } else if (gamepad1.right_bumper) {
-            robot.intake.setPower(-intakePower);
-        } else {
-            robot.intake.stop();
-        }
-    }
-    
+
     public void shootDemBalls(String distance) {
+
         if (distance == "close") {
             robot.cannon.shootClose();
         } else if (distance == "far") {
             robot.cannon.shootFar();
         }
+
         sleep(4000);
+
         robot.cannon.harpoonersFire();
-        sleep(1000);
+        sleep(5000);
+
         robot.cannon.reset();
         robot.cannon.stop();
     }
-    
+
     public void initializeVisionPortal() {
+
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         AprilTagLibrary.Builder tagLibraryBuilder = new AprilTagLibrary.Builder();
 
         tagLibraryBuilder.addTag(new AprilTagMetadata(20, "bluGoal", 0.166, DistanceUnit.METER));
-        tagLibraryBuilder.addTag(new AprilTagMetadata(21, "GPP", 0.166, DistanceUnit.METER));
-        tagLibraryBuilder.addTag(new AprilTagMetadata(22, "PGP", 0.166, DistanceUnit.METER));
-        tagLibraryBuilder.addTag(new AprilTagMetadata(23, "PPG", 0.166, DistanceUnit.METER));
+        tagLibraryBuilder.addTag(new AprilTagMetadata(21, "GPP",     0.166, DistanceUnit.METER));
+        tagLibraryBuilder.addTag(new AprilTagMetadata(22, "PGP",     0.166, DistanceUnit.METER));
+        tagLibraryBuilder.addTag(new AprilTagMetadata(23, "PPG",     0.166, DistanceUnit.METER));
         tagLibraryBuilder.addTag(new AprilTagMetadata(24, "redGoal", 0.166, DistanceUnit.METER));
+
         AprilTagLibrary decodeTagLibrary = tagLibraryBuilder.build();
 
         aprilTagProcessor = new AprilTagProcessor.Builder()
-            .setTagLibrary(decodeTagLibrary)
-            .build();
+                .setTagLibrary(decodeTagLibrary)
+                .build();
 
         visionPortalBuilder
-            .setCamera(hardwareMap.get(WebcamName.class, "turretCam"))
-            .addProcessor(aprilTagProcessor);
+                .setCamera(hardwareMap.get(WebcamName.class, "turretCam"))
+                .addProcessor(aprilTagProcessor);
 
         visionPortal = visionPortalBuilder.build();
     }
-
-    public void displayVisionPortalData() {
-        List<AprilTagDetection> aprilTagDetections = aprilTagProcessor.getDetections();
-
-        for (AprilTagDetection detection : aprilTagDetections) {
-            telemetry.addData("ID", detection.id);
-                if (detection.id == targetID && detection.ftcPose != null) {
-                } else if (detection.ftcPose != null) {
-                    telemetry.addData("Range", detection.ftcPose.range);
-                    telemetry.addData("X", detection.ftcPose.x);
-                    telemetry.addData("Y", detection.ftcPose.y);
-                    telemetry.addData("Yaw", detection.ftcPose.yaw);
-                } else if (detection.ftcPose == null) {
-                    telemetry.addLine("Null Data (and that makes me a sad panda˙◠˙)");
-                }
-        }
-    }
-
+    
     public void findThatWhale() {
         if (!gamepad2.rightBumperWasPressed()) return;
         // For some reason doing "if (gamepad2.rightBumperWasPressed())" breaks this function
