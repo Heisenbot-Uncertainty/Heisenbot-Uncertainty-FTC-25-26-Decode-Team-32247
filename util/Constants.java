@@ -4,8 +4,10 @@ public class Constants {
     public static final double WHEEL_POWER_TINY = .5;
     public static final double WHEEL_POWER_LARGE = 1;
     public static final double INTAKE_POWER = .75;
-    public static final double CANNON_POWER_CLOSE = -.555;
-    public static final double CANNON_POWER_FAR = -.7215;
+    public static final double CANNON_POWER_CLOSE = -1;
+    public static final double CANNON_POWER_FAR = -1;
+    public static final int CANNON_RPM_CLOSE = 1400;
+    public static final int CANNON_RPM_FAR = 1800;
     public static final double LOAD_SERVO_MIN_POS = 0;
     public static final double LOAD_SERVO_MAX_POS = .525;
     public static final int ENCODERS_PER_DECIMETER = 156;
@@ -25,7 +27,7 @@ public class Constants {
     public static final double BLUE_FAR_RANGE = 113.365555;
     public static final double BLUE_FAR_X = 3.846555;
     public static final double BLUE_FAR_Y = 113.835555;
-    public static final double BLUE_FAR_YAW = 31.155;
+    public static final double BLUE_FAR_YAW = 27.5555;
     
     public static final double RED_FAR_RANGE = 114;
     public static final double RED_FAR_X = -4.4855;

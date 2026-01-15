@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -66,6 +67,7 @@ public class TeleOpMain extends LinearOpMode {
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
     ColorSensor colorSensor;
+    DcMotorEx cannonMotor;
 
     @Override
     public void runOpMode() {
@@ -98,13 +100,14 @@ public class TeleOpMain extends LinearOpMode {
         redFarYaw = Constants.RED_FAR_YAW;
         
         colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+        cannonMotor = hardwareMap.get(DcMotorEx.class, "cannonMotor");
+        
         robot.cannon.reset();
         
         initializeVisionPortal();
           
         waitForStart();
         while (opModeIsActive()) {
-            
             if (gamepad2.left_bumper) {
                 shootDemBalls("close");
             }
@@ -113,16 +116,25 @@ public class TeleOpMain extends LinearOpMode {
             wheelMath();
             intakeTrigger();
             colorSensorMath();
+            debugToggle();
             if (debugMode == true) {
                 displayVisionPortalData();
             }
-            findThatWhale();
+            //findThatWhale();
+            if (gamepad2.rightBumperWasPressed()) {
+                shootDemBalls("far");
+            }
             
             if (gamepad2.dpad_up) {
                 if (targetID == 20) {
                     robot.drive.moveTank(1, .5, 2);
                     robot.drive.moveStrafe(-2, .5, 2);
                     robot.drive.moveTurn(-20, .5, 2);
+                }
+                if (targetID == 24) {
+                    robot.drive.moveTank(2, .5, 2);
+                    robot.drive.moveStrafe(5, .5, 2);
+                    robot.drive.moveTurn(26, .5, 2);
                 }
             }
             
@@ -166,11 +178,10 @@ public class TeleOpMain extends LinearOpMode {
         } else if (distance == "far") {
             robot.cannon.shootFar();
         }
-        sleep(4000);
         robot.cannon.harpoonersFire();
         sleep(1000);
         robot.cannon.reset();
-        robot.cannon.stop();
+        robot.cannon.stop(); 
     }
     
     public void initializeVisionPortal() {
@@ -409,5 +420,6 @@ public class TeleOpMain extends LinearOpMode {
                 debugMode = false;  
             }
         }
+            telemetry.addData("DebugMode", debugMode);
     }
 }
