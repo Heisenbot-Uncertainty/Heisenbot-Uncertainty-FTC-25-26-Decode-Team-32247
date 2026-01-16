@@ -195,7 +195,7 @@ wheelPowerTiny = Constants.WHEEL_POWER_TINY;
         sleep(5000);
 
         robot.cannon.reset();
-        robot.cannon.stop();
+        robot.cannon.idle();
     }
 
     public void initializeVisionPortal() {

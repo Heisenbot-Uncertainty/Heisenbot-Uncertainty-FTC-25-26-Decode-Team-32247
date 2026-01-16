@@ -138,7 +138,7 @@ public class AutoClose extends LinearOpMode {
         sleep(1000);
 
         robot.cannon.reset();
-        robot.cannon.stop();
+        robot.cannon.idle();
     }
 
     public void initializeVisionPortal() {

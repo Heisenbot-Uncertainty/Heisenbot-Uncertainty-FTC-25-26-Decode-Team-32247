@@ -1,3 +1,24 @@
+/*
+  Copyright 2026 FIRST Tech Challenge Team 32247 FTC
+ 
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+ 
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+ 
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+ */
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,9 +30,10 @@ public class DriveSubSystem {
 
     private DcMotor leftRear, rightRear, leftFront, rightFront;
 
-    int encodersPerDecimeter;
-    int encodersPerDegree;
-    int encoders, turnEncoders;
+    
+    int encodersPerDecimeter, encodersPerDegree,
+        encoders, turnEncoders;
+    
 
     public DriveSubSystem(HardwareMap hardwareMap) {
         leftRear = hardwareMap.get(DcMotor.class, "leftRear");
@@ -30,14 +52,14 @@ public class DriveSubSystem {
         encodersPerDecimeter = Constants.ENCODERS_PER_DECIMETER;
         encodersPerDegree = Constants.ENCODERS_PER_DEGREE;
     }
-
+    // Main movement function for teleop.
     public void setPower(double leftRearPower, double rightRearPower, double leftFrontPower, double rightFrontPower) {
         leftRear.setPower(leftRearPower);
         rightRear.setPower(rightRearPower);
         leftFront.setPower(leftFrontPower);
         rightFront.setPower(rightFrontPower);
     }
-
+    // Movement functions for auto.
     public void moveTank(int distance, double power, int maxTime){
         leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -115,7 +137,7 @@ public class DriveSubSystem {
         
         endMovement(maxTime);
     }
-    
+    // End a movement if it doesn't reach its target in the set time.
     public void endMovement(int maxTime){
     ElapsedTime timer = new ElapsedTime();
     timer.reset();
@@ -151,7 +173,7 @@ public class DriveSubSystem {
         }
         }
     }
-    
+    // Stop all wheels and lock up the motors.
     public void stop() {
         leftRear.setPower(0);
         rightRear.setPower(0);

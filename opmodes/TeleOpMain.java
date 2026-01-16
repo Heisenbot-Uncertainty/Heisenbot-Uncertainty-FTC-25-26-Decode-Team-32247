@@ -1,3 +1,24 @@
+/*
+  Copyright 2026 FIRST Tech Challenge Team 32247 FTC
+ 
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+ 
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+ 
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+ */
 package org.firstinspires.ftc.teamcode.opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -23,37 +44,23 @@ import java.util.List;
 public class TeleOpMain extends LinearOpMode {
     
     private org.firstinspires.ftc.teamcode.robot.Robot robot;
-    double wheelPowerTiny;
-    double wheelPowerLarge;
-    double intakePower;
-    double cannonPowerClose;
-    double cannonPowerFar;
-    double loadMinPos;
-    double loadMaxPos;
-    double purpleRedPercentage;
-    double purpleGreenPercentage;
-    double purpleBluePercentage;
-    double greenRedPercentage;
-    double greenGreenPercentage;
-    double greenBluePercentage;
-    double blueFarRange;
-    double blueFarX;
-    double blueFarY;
-    double blueFarYaw;
-    double redFarRange;
-    double redFarX;
-    double redFarY;
-    double redFarYaw;
-    double errorThreshold;
-    double aprilTagErrorThreshold;
-    double aprilTagYawErrorThreshold;
+        double wheelPowerTiny, wheelPowerLarge,
+            cannonPowerClose, cannonPowerFar,
+            loadMinPos, loadMaxPos,
+            purpleRedPercentage, purpleGreenPercentage, purpleBluePercentage,
+            greenRedPercentage, greenGreenPercentage, greenBluePercentage,
+            blueFarRange, blueFarX, blueFarY, blueFarYaw,
+            redFarRange, redFarX, redFarY, redFarYaw,
+            errorThreshold, aprilTagErrorThreshold, aprilTagYawErrorThreshold;
+
+        int targetID = 24;
+
+        boolean manualMode = false, 
+            debugMode = false, 
+            toggle = false, 
+            abort = false;
     
-    boolean manualMode = false;
-    boolean debugMode = false;
-    boolean toggle;
-    boolean abort = false;
-    int targetID = 24;
-    
+    // For auto aim loop.
     public boolean goalTagDetected() {
     List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
     for (AprilTagDetection detection : detections) {
@@ -67,14 +74,13 @@ public class TeleOpMain extends LinearOpMode {
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
     ColorSensor colorSensor;
-    DcMotorEx cannonMotor;
 
     @Override
     public void runOpMode() {
         robot = new org.firstinspires.ftc.teamcode.robot.Robot(hardwareMap);
+
         wheelPowerTiny = Constants.WHEEL_POWER_TINY;
         wheelPowerLarge = Constants.WHEEL_POWER_LARGE;
-        intakePower = Constants.INTAKE_POWER;
         cannonPowerClose = Constants.CANNON_POWER_CLOSE;
         cannonPowerFar = Constants.CANNON_POWER_FAR;
         loadMinPos = Constants.LOAD_SERVO_MIN_POS;
@@ -100,94 +106,37 @@ public class TeleOpMain extends LinearOpMode {
         redFarYaw = Constants.RED_FAR_YAW;
         
         colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
-        cannonMotor = hardwareMap.get(DcMotorEx.class, "cannonMotor");
-        
-        robot.cannon.reset();
         
         initializeVisionPortal();
-          
+
+        telemetry.addLine("Initialized");
+        telemetry.update();
+
         waitForStart();
+            // Dont start cannon idle and load servo until after teleop initialize phase.
+            robot.cannon.reset();
+            robot.cannon.idle();
+            telemetry.addData("Target", "RED");
         while (opModeIsActive()) {
-            if (gamepad2.left_bumper) {
-                shootDemBalls("close");
-            }
-            telemetry.addData("targetID", targetID);
-            targetToggle();
+             robot.cannon.idle();
             wheelMath();
             intakeTrigger();
+            callMeIshmael();
+            findThatWhale();
             colorSensorMath();
+            targetToggle();
             debugToggle();
             if (debugMode == true) {
                 displayVisionPortalData();
             }
-            //findThatWhale();
-            if (gamepad2.rightBumperWasPressed()) {
-                shootDemBalls("far");
-            }
-            
-            if (gamepad2.dpad_up) {
-                if (targetID == 20) {
-                    robot.drive.moveTank(1, .5, 2);
-                    robot.drive.moveStrafe(-2, .5, 2);
-                    robot.drive.moveTurn(-20, .5, 2);
-                }
-                if (targetID == 24) {
-                    robot.drive.moveTank(2, .5, 2);
-                    robot.drive.moveStrafe(5, .5, 2);
-                    robot.drive.moveTurn(26, .5, 2);
-                }
-            }
-            
-            
-            
             telemetry.update();
         }
     }
-    public void wheelMath() {
-        if (gamepad1.dpad_up) {
-                robot.drive.setPower(wheelPowerTiny, wheelPowerTiny, wheelPowerTiny, wheelPowerTiny);
-            } else if (gamepad1.dpad_down) {
-                robot.drive.setPower(-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny);
-            } else if (gamepad1.dpad_left) {
-                robot.drive.setPower(wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,wheelPowerTiny);
-            } else if (gamepad1.dpad_right) {
-                robot.drive.setPower(-wheelPowerTiny,wheelPowerTiny,wheelPowerTiny,-wheelPowerTiny);
-            } else {
-                robot.drive.setPower(
-                (wheelPowerLarge*(-(gamepad1.right_stick_y - (-gamepad1.right_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.left_stick_y + (-gamepad1.left_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.right_stick_y + (-gamepad1.right_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.left_stick_y - (-gamepad1.left_stick_x))))
-                );
-        }
-    }
-    
-    public void intakeTrigger() {
-        if (gamepad1.right_trigger > .1) {
-            robot.intake.setPower(intakePower);
-        } else if (gamepad1.right_bumper) {
-            robot.intake.setPower(-intakePower);
-        } else {
-            robot.intake.stop();
-        }
-    }
-    
-    public void shootDemBalls(String distance) {
-        if (distance == "close") {
-            robot.cannon.shootClose();
-        } else if (distance == "far") {
-            robot.cannon.shootFar();
-        }
-        robot.cannon.harpoonersFire();
-        sleep(1000);
-        robot.cannon.reset();
-        robot.cannon.stop(); 
-    }
-    
+
     public void initializeVisionPortal() {
         VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
         AprilTagLibrary.Builder tagLibraryBuilder = new AprilTagLibrary.Builder();
-
+        // All tags used this year.
         tagLibraryBuilder.addTag(new AprilTagMetadata(20, "bluGoal", 0.166, DistanceUnit.METER));
         tagLibraryBuilder.addTag(new AprilTagMetadata(21, "GPP", 0.166, DistanceUnit.METER));
         tagLibraryBuilder.addTag(new AprilTagMetadata(22, "PGP", 0.166, DistanceUnit.METER));
@@ -208,7 +157,7 @@ public class TeleOpMain extends LinearOpMode {
 
     public void displayVisionPortalData() {
         List<AprilTagDetection> aprilTagDetections = aprilTagProcessor.getDetections();
-
+        // This only displays if debug mode is on.
         for (AprilTagDetection detection : aprilTagDetections) {
             telemetry.addData("ID", detection.id);
                 if (detection.id == targetID && detection.ftcPose != null) {
@@ -218,14 +167,75 @@ public class TeleOpMain extends LinearOpMode {
                     telemetry.addData("Y", detection.ftcPose.y);
                     telemetry.addData("Yaw", detection.ftcPose.yaw);
                 } else if (detection.ftcPose == null) {
+                    // Fallback if tag id is unknown to not break code.
                     telemetry.addLine("Null Data (and that makes me a sad panda˙◠˙)");
                 }
         }
     }
+    // What sends power/velocity to the cannon.
+    public void shootDemBalls(String distance) {
+        if (distance == "close") {
+            robot.cannon.shootClose();
+        } else if (distance == "far") {
+            robot.cannon.shootFar();
+        }
+        // Push ball into cannon wheel
+        robot.cannon.harpoonersFire();
+        sleep(1000);
+        // Reset load servo and wheel rpm
+        robot.cannon.reset();
+        robot.cannon.idle(); 
+    }
 
+    public void wheelMath() {
+        // Small movements for dpad controls.
+        if (gamepad1.dpad_up) {
+                robot.drive.setPower(wheelPowerTiny, wheelPowerTiny, wheelPowerTiny, wheelPowerTiny);
+            } else if (gamepad1.dpad_down) {
+                robot.drive.setPower(-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny);
+            } else if (gamepad1.dpad_left) {
+                robot.drive.setPower(wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,wheelPowerTiny);
+            } else if (gamepad1.dpad_right) {
+                robot.drive.setPower(-wheelPowerTiny,wheelPowerTiny,wheelPowerTiny,-wheelPowerTiny);
+            } else {
+                // Main, Large movements for joysticks.
+                robot.drive.setPower(
+                (wheelPowerLarge*(-(gamepad1.right_stick_y - (-gamepad1.right_stick_x)))),
+                (wheelPowerLarge*(-(gamepad1.left_stick_y + (-gamepad1.left_stick_x)))),
+                (wheelPowerLarge*(-(gamepad1.right_stick_y + (-gamepad1.right_stick_x)))),
+                (wheelPowerLarge*(-(gamepad1.left_stick_y - (-gamepad1.left_stick_x))))
+                );
+        }
+    }
+    // Controls for intaking and outtaking balls.
+    public void intakeTrigger() {
+        if (gamepad1.right_trigger > .1) {
+            robot.intake.intake();
+        } else if (gamepad1.right_bumper) {
+            robot.intake.outtake();
+        } else {
+            robot.intake.stop();
+        }
+    }
+    // Line up for auto aim loop.
+    public void callMeIshmael() {
+        if (gamepad2.dpad_up) {
+            if (targetID == 20) {
+                robot.drive.moveTank(2, .5, 2);
+                robot.drive.moveStrafe(-5, .5, 2);
+                robot.drive.moveTurn(-26, .5, 2);
+            }
+            if (targetID == 24) {
+                robot.drive.moveTank(2, .5, 2);
+                robot.drive.moveStrafe(5, .5, 2);
+                robot.drive.moveTurn(26, .5, 2);
+            }
+        }
+    }
+    // Auto aim loop.
     public void findThatWhale() {
         if (!gamepad2.rightBumperWasPressed()) return;
-        // For some reason doing "if (gamepad2.rightBumperWasPressed())" breaks this function
+        // Doing "if (gamepad2.rightBumperWasPressed())" breaks this function (Reason unknown).
             double targetX;
             double targetY;
             double targetRange;
@@ -246,7 +256,7 @@ public class TeleOpMain extends LinearOpMode {
         }
 
         AprilTagDetection detection;
-
+        // Abandon all hope, ye who enter here.
         while (opModeIsActive()) {
             if (gamepad2.a) {
                 abort = true;
@@ -373,6 +383,7 @@ public class TeleOpMain extends LinearOpMode {
 
     public void colorSensorMath() {
         double total = colorSensor.red() + colorSensor.green() + colorSensor.blue();
+        // Get RGB in percent.
         double r = colorSensor.red() * 100.0 / total;
         double g = colorSensor.green() * 100.0 / total;
         double b = colorSensor.blue() * 100.0 / total;
@@ -384,6 +395,7 @@ public class TeleOpMain extends LinearOpMode {
             Math.abs(r - greenRedPercentage) +
             Math.abs(g - greenGreenPercentage) +
             Math.abs(b - greenBluePercentage);
+            // Find if color is purple, green, or neither using RGB percent with an error threshold.
         if (purpleError < greenError && purpleError < errorThreshold) {
             telemetry.addData("Color", "PURPLE");
         } else if (greenError < purpleError && greenError < errorThreshold) {
@@ -392,7 +404,7 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Color", "NULL");
         }
     }
-
+    // Change what goal to look for during auto aim.
     public void targetToggle() {
         if (gamepad2.y && targetID == 20) {
             targetID = 24;
@@ -409,12 +421,12 @@ public class TeleOpMain extends LinearOpMode {
                 telemetry.addData("Target", "RED");
             }
     }
-    
+    // Stuff for the nerds.
     public void debugToggle() {
-        if ((gamepad1.a || gamepad2.a) && debugMode == false) {
+        if ((gamepad1.x || gamepad2.x) && debugMode == false) {
             debugMode = true;
             toggle = true;
-        } else if ((gamepad1.a || gamepad2.a) && debugMode == true) {
+        } else if ((gamepad1.x || gamepad2.x) && debugMode == true) {
             sleep(500);
             if (toggle == false) {
                 debugMode = false;  

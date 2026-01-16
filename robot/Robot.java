@@ -8,12 +8,10 @@ public class Robot {
     public final DriveSubSystem drive;
     public final IntakeSubSystem intake;
     public final CannonSubSystem cannon;
-    public final AimSubSystem aim;
     
     public Robot(HardwareMap hardwareMap) {
         drive = new DriveSubSystem(hardwareMap);
         intake = new IntakeSubSystem(hardwareMap);
         cannon = new CannonSubSystem(hardwareMap);
-        aim = new AimSubSystem(hardwareMap);
     }
 }
