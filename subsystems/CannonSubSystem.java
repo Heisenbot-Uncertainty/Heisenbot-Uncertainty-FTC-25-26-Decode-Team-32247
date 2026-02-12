@@ -44,27 +44,25 @@ public class CannonSubSystem {
         loadMinPos = Constants.LOAD_SERVO_MIN_POS;
         loadMaxPos = Constants.LOAD_SERVO_MAX_POS;
         
-        cannonMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-                cannonMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        //cannonMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        cannonMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
     }
     
     public void shootClose() {
-        //cannonMotor.setPower(1);
-           cannonMotor.setVelocity((500 * 112) / 60);
+        cannonMotor.setPower(1);
         while (true) {
             // Make sure to not continue the firing process until motor is to speed.
-            if (Math.abs(cannonMotor.getVelocity() - cannonRPMClose) <= 20) {
+            if (Math.abs(Math.abs(cannonMotor.getVelocity()) - cannonRPMClose) <= 20) {
                 break;
             }
-        } 
+        }
     }
     
     public void shootFar() {
-      //  cannonMotor.setPower(1);
-          cannonMotor.setVelocity((500 * 112) / 60);
+        cannonMotor.setPower(1);
         while (true) {
             // Make sure to not continue the firing process until motor is to speed.
-            if (Math.abs(cannonMotor.getVelocity() - cannonRPMFar) <= 20) {
+            if (Math.abs(Math.abs(cannonMotor.getVelocity()) - cannonRPMFar) <= 20) {
                 break;
             }
         }
@@ -81,10 +79,8 @@ public class CannonSubSystem {
     }
     
     public void idle() {
-     cannonMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Set the cannon motor to idle to make speed up for shooting take less time.
-      //  cannonMotor.setPower(1);
-       cannonMotor.setVelocity((50 * 112) / 60);
+     cannonMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    // Set the cannon motor to idle to make speed up for shooting take less time.
+    cannonMotor.setPower(.3);
     }
 }

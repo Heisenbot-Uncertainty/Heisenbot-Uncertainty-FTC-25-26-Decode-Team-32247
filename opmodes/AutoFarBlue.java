@@ -19,11 +19,13 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
  */
+
 package org.firstinspires.ftc.teamcode.opmodes;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.robot.Robot;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -36,45 +38,52 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.util.Constants;
 import java.util.List;
 
-@TeleOp(name = "TeleOp Main", group = "TeleOp")
-public class TeleOpMain extends LinearOpMode {
+
+
+@Autonomous
+public class AutoFarBlue extends LinearOpMode {
+
+    private Robot robot;
+
+    private DcMotor leftRear, rightRear, leftFront, rightFront;
+    private DcMotor intakeMotor, cannonMotor;
+    private Servo loadingServo;
     
-    private org.firstinspires.ftc.teamcode.robot.Robot robot;
-
-    DcMotor leftRear, rightRear, leftFront, rightFront, intakeMotor;
-    DcMotorEx cannonMotor;
-
-    double wheelPowerTiny, wheelPowerLarge,
-        cannonPowerClose, cannonPowerFar,
-        loadMinPos, loadMaxPos,
-        purpleRedPercentage, purpleGreenPercentage, purpleBluePercentage,
-        greenRedPercentage, greenGreenPercentage, greenBluePercentage,
-        blueFarRange, blueFarX, blueFarY, blueFarYaw,
-        redFarRange, redFarX, redFarY, redFarYaw,
-        errorThreshold, aprilTagErrorThreshold, aprilTagYawErrorThreshold,
-        total, r, g, b, purpleError, greenError;
-
-        int targetID = 24;
-
-        boolean manualMode = false, 
-            debugMode = false, 
-            toggle = false, 
-            abort = false;
+    double wheelPowerTiny;
+    double wheelPowerLarge;
+    double intakePower;
+    double cannonPowerClose;
+    double cannonPowerFar;
+    double loadMinPos;
+    double loadMaxPos;
+    double purpleRedPercentage;
+    double purpleGreenPercentage;
+    double purpleBluePercentage;
+    double greenRedPercentage;
+    double greenGreenPercentage;
+    double greenBluePercentage;
+    double blueFarRange;
+    double blueFarX;
+    double blueFarY;
+    double blueFarYaw;
+    double redFarRange;
+    double redFarX;
+    double redFarY;
+    double redFarYaw;
+    double errorThreshold;
+    double aprilTagErrorThreshold;
+    double aprilTagYawErrorThreshold;
     
-    // For auto aim loop.
-    public boolean goalTagDetected() {
-    List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-    for (AprilTagDetection detection : detections) {
-        if (detection.id == targetID && detection.ftcPose != null) {
-            return true;
-        }
-    }
-    return false;
-}
+    boolean manualMode = false;
+    boolean debugMode = false;
+    boolean toggle;
+    boolean abort = false;
+    int targetID = 24;
+
+    int goalColor = 24;
 
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
@@ -82,10 +91,52 @@ public class TeleOpMain extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+
         robot = new org.firstinspires.ftc.teamcode.robot.Robot(hardwareMap);
 
-        wheelPowerTiny = Constants.WHEEL_POWER_TINY;
+        leftRear   = hardwareMap.get(DcMotor.class, "leftRear");
+        rightRear  = hardwareMap.get(DcMotor.class, "rightRear");
+        leftFront  = hardwareMap.get(DcMotor.class, "leftFront");
+        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
+
+        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+        cannonMotor = hardwareMap.get(DcMotor.class, "cannonMotor");
+        loadingServo = hardwareMap.get(Servo.class, "loadingServo");
+
+        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
+
+        rightRear.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
+
+        leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        cannonMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        intakeMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        cannonMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftRear.setTargetPosition(0);
+        rightRear.setTargetPosition(0);
+        leftFront.setTargetPosition(0);
+        rightFront.setTargetPosition(0);
+
+        leftRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightRear.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightFront.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        
+        cannonMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+wheelPowerTiny = Constants.WHEEL_POWER_TINY;
         wheelPowerLarge = Constants.WHEEL_POWER_LARGE;
+        intakePower = Constants.INTAKE_POWER;
         cannonPowerClose = Constants.CANNON_POWER_CLOSE;
         cannonPowerFar = Constants.CANNON_POWER_FAR;
         loadMinPos = Constants.LOAD_SERVO_MIN_POS;
@@ -109,160 +160,65 @@ public class TeleOpMain extends LinearOpMode {
         redFarX = Constants.RED_FAR_X;
         redFarY = Constants.RED_FAR_Y;
         redFarYaw = Constants.RED_FAR_YAW;
-        
-        colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
-        leftRear = hardwareMap.get(DcMotor.class, "leftRear");
-        rightRear = hardwareMap.get(DcMotor.class, "rightRear");
-        leftFront = hardwareMap.get(DcMotor.class, "leftFront");
-        rightFront = hardwareMap.get(DcMotor.class, "rightFront");
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-        cannonMotor = hardwareMap.get(DcMotorEx.class, "cannonMotor");
-        
+
+
+
         initializeVisionPortal();
 
-        telemetry.addLine("Initialized");
+        telemetry.addData("Status", "Initialized");
         telemetry.update();
 
         waitForStart();
-            // Dont start cannon idle and load servo until after teleop initialize phase.
-            robot.cannon.reset();
-            robot.cannon.idle();
-            telemetry.addData("Target", "RED");
-        while (opModeIsActive()) {
-             robot.cannon.idle();
-            wheelMath();
-            intakeTrigger();
-            callMeIshmael();
-            findThatWhale();
-            if (gamepad2.leftBumperWasPressed()) {
-                shootDemBalls("close");
-            }
-            colorSensorMath();
-            displayVisionPortalData();
-            targetToggle();
-            debugToggle();
-            if (debugMode == true) {
-                telemetry.addData("LR Power", leftRear.getPower());
-                telemetry.addData("RR Power", rightRear.getPower());
-                telemetry.addData("LF Power", leftFront.getPower());
-                telemetry.addData("RF Power", rightFront.getPower());
 
-                telemetry.addData("Intake Power", intakeMotor.getPower());
-                telemetry.addData("Cannon Power", cannonMotor.getPower());
-                telemetry.addData("Cannon Velocity", cannonMotor.getVelocity());
-
-                telemetry.addData("Red%", r);
-                telemetry.addData("Green%", g);
-                telemetry.addData("Blue%", b);
-            }
-            telemetry.update();
+        if (opModeIsActive()) {
+           robot.drive.moveTank(6,.5,3);
         }
     }
 
-    public void initializeVisionPortal() {
-        VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
-        AprilTagLibrary.Builder tagLibraryBuilder = new AprilTagLibrary.Builder();
-        // All tags used this year.
-        tagLibraryBuilder.addTag(new AprilTagMetadata(20, "bluGoal", 0.166, DistanceUnit.METER));
-        tagLibraryBuilder.addTag(new AprilTagMetadata(21, "GPP", 0.166, DistanceUnit.METER));
-        tagLibraryBuilder.addTag(new AprilTagMetadata(22, "PGP", 0.166, DistanceUnit.METER));
-        tagLibraryBuilder.addTag(new AprilTagMetadata(23, "PPG", 0.166, DistanceUnit.METER));
-        tagLibraryBuilder.addTag(new AprilTagMetadata(24, "redGoal", 0.166, DistanceUnit.METER));
-        AprilTagLibrary decodeTagLibrary = tagLibraryBuilder.build();
-
-        aprilTagProcessor = new AprilTagProcessor.Builder()
-            .setTagLibrary(decodeTagLibrary)
-            .build();
-
-        visionPortalBuilder
-            .setCamera(hardwareMap.get(WebcamName.class, "turretCam"))
-            .addProcessor(aprilTagProcessor);
-
-        visionPortal = visionPortalBuilder.build();
-    }
-
-    public void displayVisionPortalData() {
-        List<AprilTagDetection> aprilTagDetections = aprilTagProcessor.getDetections();
-        // This only displays if debug mode is on.
-        for (AprilTagDetection detection : aprilTagDetections) {
-            telemetry.addData("ID", detection.id);
-                if (detection.ftcPose != null && debugMode == true) {
-                    telemetry.addData("Range", detection.ftcPose.range);
-                    telemetry.addData("X", detection.ftcPose.x);
-                    telemetry.addData("Y", detection.ftcPose.y);
-                    telemetry.addData("Yaw", detection.ftcPose.yaw);
-                } else if (detection.id != targetID && detection.ftcPose != null) {
-                    telemetry.addLine("Not target april tag");
-                } else if (detection.ftcPose == null) {
-                    // Fallback if tag id is unknown to not break code.
-                    telemetry.addLine("Null Data (and that makes me a sad panda˙◠˙)");
-                }
-        }
-    }
-    // What sends power/velocity to the cannon.
     public void shootDemBalls(String distance) {
+
         if (distance == "close") {
             robot.cannon.shootClose();
         } else if (distance == "far") {
             robot.cannon.shootFar();
         }
-        // Push ball into cannon wheel
+
+        sleep(4000);
+
         robot.cannon.harpoonersFire();
-        sleep(1000);
-        // Reset load servo and wheel rpm
+        sleep(5000);
+
         robot.cannon.reset();
-        robot.cannon.idle(); 
+        robot.cannon.idle();
     }
 
-    public void wheelMath() {
-        // Small movements for dpad controls.
-        if (gamepad1.dpad_up) {
-                robot.drive.setPower(wheelPowerTiny, wheelPowerTiny, wheelPowerTiny, wheelPowerTiny);
-            } else if (gamepad1.dpad_down) {
-                robot.drive.setPower(-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny);
-            } else if (gamepad1.dpad_left) {
-                robot.drive.setPower(wheelPowerTiny,-wheelPowerTiny,-wheelPowerTiny,wheelPowerTiny);
-            } else if (gamepad1.dpad_right) {
-                robot.drive.setPower(-wheelPowerTiny,wheelPowerTiny,wheelPowerTiny,-wheelPowerTiny);
-            } else {
-                // Main, Large movements for joysticks.
-                robot.drive.setPower(
-                (wheelPowerLarge*(-(gamepad1.right_stick_y - (-gamepad1.right_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.left_stick_y + (-gamepad1.left_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.right_stick_y + (-gamepad1.right_stick_x)))),
-                (wheelPowerLarge*(-(gamepad1.left_stick_y - (-gamepad1.left_stick_x))))
-                );
-        }
+    public void initializeVisionPortal() {
+
+        VisionPortal.Builder visionPortalBuilder = new VisionPortal.Builder();
+        AprilTagLibrary.Builder tagLibraryBuilder = new AprilTagLibrary.Builder();
+
+        tagLibraryBuilder.addTag(new AprilTagMetadata(20, "bluGoal", 0.166, DistanceUnit.METER));
+        tagLibraryBuilder.addTag(new AprilTagMetadata(21, "GPP",     0.166, DistanceUnit.METER));
+        tagLibraryBuilder.addTag(new AprilTagMetadata(22, "PGP",     0.166, DistanceUnit.METER));
+        tagLibraryBuilder.addTag(new AprilTagMetadata(23, "PPG",     0.166, DistanceUnit.METER));
+        tagLibraryBuilder.addTag(new AprilTagMetadata(24, "redGoal", 0.166, DistanceUnit.METER));
+
+        AprilTagLibrary decodeTagLibrary = tagLibraryBuilder.build();
+
+        aprilTagProcessor = new AprilTagProcessor.Builder()
+                .setTagLibrary(decodeTagLibrary)
+                .build();
+
+        visionPortalBuilder
+                .setCamera(hardwareMap.get(WebcamName.class, "turretCam"))
+                .addProcessor(aprilTagProcessor);
+
+        visionPortal = visionPortalBuilder.build();
     }
-    // Controls for intaking and outtaking balls.
-    public void intakeTrigger() {
-        if (gamepad1.right_trigger > .1) {
-            robot.intake.intake();
-        } else if (gamepad1.right_bumper) {
-            robot.intake.outtake();
-        } else {
-            robot.intake.stop();
-        }
-    }
-    // Line up for auto aim loop.
-    public void callMeIshmael() {
-        if (gamepad2.dpad_up) {
-            if (targetID == 20) {
-                robot.drive.moveTank(2, .5, 2);
-                robot.drive.moveStrafe(-5, .5, 2);
-                robot.drive.moveTurn(-26, .5, 2);
-            }
-            if (targetID == 24) {
-                robot.drive.moveTank(2, .5, 2);
-                robot.drive.moveStrafe(5, .5, 2);
-                robot.drive.moveTurn(26, .5, 2);
-            }
-        }
-    }
-    // Auto aim loop.
+    
     public void findThatWhale() {
         if (!gamepad2.rightBumperWasPressed()) return;
-        // Doing "if (gamepad2.rightBumperWasPressed())" breaks this function (Reason unknown).
+        // For some reason doing "if (gamepad2.rightBumperWasPressed())" breaks this function
             double targetX;
             double targetY;
             double targetRange;
@@ -283,7 +239,7 @@ public class TeleOpMain extends LinearOpMode {
         }
 
         AprilTagDetection detection;
-        // Abandon all hope, ye who enter here.
+
         while (opModeIsActive()) {
             if (gamepad2.a) {
                 abort = true;
@@ -409,20 +365,18 @@ public class TeleOpMain extends LinearOpMode {
 }
 
     public void colorSensorMath() {
-        total = colorSensor.red() + colorSensor.green() + colorSensor.blue();
-        // Get RGB in percent.
-        r = colorSensor.red() * 100.0 / total;
-        g = colorSensor.green() * 100.0 / total;
-        b = colorSensor.blue() * 100.0 / total;
-        purpleError =
+        double total = colorSensor.red() + colorSensor.green() + colorSensor.blue();
+        double r = colorSensor.red() * 100.0 / total;
+        double g = colorSensor.green() * 100.0 / total;
+        double b = colorSensor.blue() * 100.0 / total;
+        double purpleError =
             Math.abs(r - purpleRedPercentage) +
             Math.abs(g - purpleGreenPercentage) +
             Math.abs(b - purpleBluePercentage);
-        greenError =
+        double greenError =
             Math.abs(r - greenRedPercentage) +
             Math.abs(g - greenGreenPercentage) +
             Math.abs(b - greenBluePercentage);
-            // Find if color is purple, green, or neither using RGB percent with an error threshold.
         if (purpleError < greenError && purpleError < errorThreshold) {
             telemetry.addData("Color", "PURPLE");
         } else if (greenError < purpleError && greenError < errorThreshold) {
@@ -431,7 +385,7 @@ public class TeleOpMain extends LinearOpMode {
             telemetry.addData("Color", "NULL");
         }
     }
-    // Change what goal to look for during auto aim.
+
     public void targetToggle() {
         if (gamepad2.y && targetID == 20) {
             targetID = 24;
@@ -448,11 +402,16 @@ public class TeleOpMain extends LinearOpMode {
                 telemetry.addData("Target", "RED");
             }
     }
-    // Stuff for the nerds.
+    
     public void debugToggle() {
-        if ((gamepad1.x || gamepad2.x)) {
+        if ((gamepad1.a || gamepad2.a) && debugMode == false) {
             debugMode = true;
+            toggle = true;
+        } else if ((gamepad1.a || gamepad2.a) && debugMode == true) {
+            sleep(500);
+            if (toggle == false) {
+                debugMode = false;  
+            }
         }
-        telemetry.addData("DebugMode", debugMode);
     }
 }

@@ -25,8 +25,8 @@ public class Constants {
     public static final double 
       WHEEL_POWER_TINY = 0.5,
       WHEEL_POWER_LARGE = 1.0,
-      INTAKE_POWER = 0.8,
-      OUTTAKE_POWER = -1.0,
+      INTAKE_POWER = -0.8,
+      OUTTAKE_POWER = 1.0,
       CANNON_POWER_CLOSE = 1.0,
       CANNON_POWER_FAR = 1.0,
       LOAD_SERVO_MIN_POS = 0.0,
@@ -38,19 +38,19 @@ public class Constants {
       GREEN_GREEN_PERCENTAGE = 53.6,
       GREEN_BLUE_PERCENTAGE = 35.4,
       ERROR_THRESHOLD = 15.0,
-      BLUE_FAR_RANGE = 113.365555,
+      BLUE_FAR_RANGE = 110.365555,
       BLUE_FAR_X = 3.846555,
       BLUE_FAR_Y = 113.835555,
-      BLUE_FAR_YAW = 27.5555,
+      BLUE_FAR_YAW = 28.5555,
       RED_FAR_RANGE = 114.0,
       RED_FAR_X = -4.4855,
       RED_FAR_Y = 109.8555,
-      RED_FAR_YAW = -30.4555,
+      RED_FAR_YAW = -25.4555,
       APRIL_TAG_ERROR_THRESHOLD = 2.0,
       APRIL_TAG_YAW_ERROR_THRESHOLD = 5.0,
-      CANNON_RPM_CLOSE = 500,
-      CANNON_RPM_FAR = 500;
-
+      CANNON_RPM_CLOSE = 1180,
+      CANNON_RPM_FAR = 1500;
+      
     public static final int 
     ENCODERS_PER_DECIMETER = 156,
     ENCODERS_PER_DEGREE = 11,

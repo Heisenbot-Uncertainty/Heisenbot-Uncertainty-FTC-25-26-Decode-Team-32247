@@ -175,6 +175,7 @@ wheelPowerTiny = Constants.WHEEL_POWER_TINY;
             robot.drive.moveTank(3, .5, 3);
             robot.drive.moveTurn(22, .5, 3);
             robot.drive.moveStrafe(2, .5, 3);
+            findThatWhale();
             shootDemBalls("far");
             sleep(5000);
             shootDemBalls("far");
