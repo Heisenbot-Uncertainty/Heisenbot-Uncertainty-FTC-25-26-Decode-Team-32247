@@ -51,10 +51,12 @@ public class AutoFarRed extends LinearOpMode {
     private DcMotor intakeMotor, cannonMotor;
     private Servo loadingServo;
 
-    int goalColor = 24;
+    int targetID = 24;
 
     double redCloseRange, redCloseX, redCloseY, redCloseYaw,
-    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw;
+    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw, aprilTagErrorThreshold, aprilTagYawErrorThreshold;
+    
+    boolean abort = false;
     
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
@@ -108,12 +110,15 @@ public class AutoFarRed extends LinearOpMode {
         redCloseRange = Constants.RED_CLOSE_RANGE;
         redCloseX = Constants.RED_CLOSE_X;
         redCloseY = Constants.RED_CLOSE_Y;
-        redCloseYaw = Constants.RED_CLOSe_YAW;
+        redCloseYaw = Constants.RED_CLOSE_YAW;
 
         blueCloseRange = Constants.BLUE_CLOSE_RANGE;
         blueCloseX = Constants.BLUE_CLOSE_X;
         blueCloseY = Constants.BLUE_CLOSE_Y;
         blueCloseYaw = Constants.BLUE_CLOSE_YAW;
+        
+        aprilTagErrorThreshold = Constants.APRIL_TAG_ERROR_THRESHOLD;
+        aprilTagYawErrorThreshold = Constants.APRIL_TAG_YAW_ERROR_THRESHOLD;
 
         initializeVisionPortal();
 

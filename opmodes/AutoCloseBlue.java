@@ -51,10 +51,12 @@ public class AutoCloseBlue extends LinearOpMode {
     private DcMotor intakeMotor, cannonMotor;
     private Servo loadingServo;
 
-    int goalColor = 20;
+    int targetID = 20;
 
     double redCloseRange, redCloseX, redCloseY, redCloseYaw,
-    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw;
+    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw, aprilTagErrorThreshold, aprilTagYawErrorThreshold;
+    
+    boolean abort = false;
     
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
@@ -108,12 +110,15 @@ public class AutoCloseBlue extends LinearOpMode {
         redCloseRange = Constants.RED_CLOSE_RANGE;
         redCloseX = Constants.RED_CLOSE_X;
         redCloseY = Constants.RED_CLOSE_Y;
-        redCloseYaw = Constants.RED_CLOSe_YAW;
+        redCloseYaw = Constants.RED_CLOSE_YAW;
 
         blueCloseRange = Constants.BLUE_CLOSE_RANGE;
         blueCloseX = Constants.BLUE_CLOSE_X;
         blueCloseY = Constants.BLUE_CLOSE_Y;
         blueCloseYaw = Constants.BLUE_CLOSE_YAW;
+        
+        aprilTagErrorThreshold = Constants.APRIL_TAG_ERROR_THRESHOLD;
+        aprilTagYawErrorThreshold = Constants.APRIL_TAG_YAW_ERROR_THRESHOLD;
 
         initializeVisionPortal();
 
@@ -123,7 +128,7 @@ public class AutoCloseBlue extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-          robot.drive.moveTank(21,.7,8);
+          robot.drive.moveTank(-19,.7,8);
           shootDemBalls("close");
           sleep(5000);
           shootDemBalls("close");
@@ -134,9 +139,9 @@ public class AutoCloseBlue extends LinearOpMode {
           shootDemBalls("close");
           sleep(1000);
           if (targetID == 20) {
-            robot.drive.moveStrafe(-3, .5, 3);
+            robot.drive.moveStrafe(7, .5, 3);
           } else {
-            robot.drive.moveStrafe(-3, .5, 3);
+            robot.drive.moveStrafe(-7, .5, 3);
           }
         }
     }

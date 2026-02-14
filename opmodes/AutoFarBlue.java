@@ -50,11 +50,13 @@ public class AutoFarBlue extends LinearOpMode {
     private DcMotor leftRear, rightRear, leftFront, rightFront;
     private DcMotor intakeMotor, cannonMotor;
     private Servo loadingServo;
+    
+    boolean abort = false;
 
-    int goalColor = 20;
+    int targetID = 20;
 
     double redCloseRange, redCloseX, redCloseY, redCloseYaw,
-    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw;
+    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw, aprilTagErrorThreshold, aprilTagYawErrorThreshold;
     
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
@@ -108,12 +110,15 @@ public class AutoFarBlue extends LinearOpMode {
         redCloseRange = Constants.RED_CLOSE_RANGE;
         redCloseX = Constants.RED_CLOSE_X;
         redCloseY = Constants.RED_CLOSE_Y;
-        redCloseYaw = Constants.RED_CLOSe_YAW;
+        redCloseYaw = Constants.RED_CLOSE_YAW;
 
         blueCloseRange = Constants.BLUE_CLOSE_RANGE;
         blueCloseX = Constants.BLUE_CLOSE_X;
         blueCloseY = Constants.BLUE_CLOSE_Y;
         blueCloseYaw = Constants.BLUE_CLOSE_YAW;
+        
+        aprilTagErrorThreshold = Constants.APRIL_TAG_ERROR_THRESHOLD;
+        aprilTagYawErrorThreshold = Constants.APRIL_TAG_YAW_ERROR_THRESHOLD;
 
         initializeVisionPortal();
 
@@ -174,7 +179,6 @@ public class AutoFarBlue extends LinearOpMode {
     }
 
     public void callMeIshmael() {
-        if (gamepad2.dpad_up) {
             if (targetID == 20) {
                 robot.drive.moveTank(2, .5, 2);
                 robot.drive.moveStrafe(-5, .5, 2);
@@ -184,7 +188,6 @@ public class AutoFarBlue extends LinearOpMode {
                 robot.drive.moveTank(2, .5, 2);
                 robot.drive.moveStrafe(5, .5, 2);
                 robot.drive.moveTurn(26, .5, 2);
-            }
         }
     }
 

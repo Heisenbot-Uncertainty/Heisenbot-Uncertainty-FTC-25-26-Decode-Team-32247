@@ -81,6 +81,6 @@ public class CannonSubSystem {
     public void idle() {
      cannonMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     // Set the cannon motor to idle to make speed up for shooting take less time.
-    cannonMotor.setPower(.3);
+    cannonMotor.setPower(0);
     }
 }

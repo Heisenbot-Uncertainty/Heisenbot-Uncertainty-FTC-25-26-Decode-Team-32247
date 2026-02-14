@@ -129,7 +129,7 @@ public class TeleOpMain extends LinearOpMode {
             robot.cannon.idle();
             telemetry.addData("Target", "RED");
         while (opModeIsActive()) {
-             robot.cannon.idle();
+            robot.cannon.idle();
             wheelMath();
             intakeTrigger();
             callMeIshmael();
