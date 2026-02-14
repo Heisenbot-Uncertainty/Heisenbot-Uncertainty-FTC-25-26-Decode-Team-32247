@@ -43,7 +43,7 @@ import java.util.List;
 
 
 @Autonomous
-public class AutoFarBlue extends LinearOpMode {
+public class AutoFarFallback extends LinearOpMode {
 
     private Robot robot;
 
@@ -51,7 +51,7 @@ public class AutoFarBlue extends LinearOpMode {
     private DcMotor intakeMotor, cannonMotor;
     private Servo loadingServo;
 
-    int goalColor = 20;
+    int goalColor = 24;
 
     double redCloseRange, redCloseX, redCloseY, redCloseYaw,
     blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw;
@@ -123,15 +123,7 @@ public class AutoFarBlue extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            callMeIshmael();
-            findThatWhale();
-            sleep(2000);
-            findThatWhale();
-            robot.intake.outtake();
-            sleep(200);
-            robot.intake.intake();
-            sleep(2000);
-            findThatWhale();
+            robot.drive.moveTank(6,.5,3);
         }
     }
 

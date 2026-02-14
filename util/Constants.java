@@ -46,6 +46,18 @@ public class Constants {
       RED_FAR_X = -4.4855,
       RED_FAR_Y = 109.8555,
       RED_FAR_YAW = -25.4555,
+
+      BLUE_CLOSE_RANGE = 0,
+      BLUE_CLOSE_X = 0,
+      BLUE_CLOSE_Y = 0,
+      BLUE_CLOSE_YAW = 0,
+
+      RED_CLOSE_RANGE = 0,
+      RED_CLOSE_X = 0,
+      RED_CLOSE_Y = 0,
+      RED_CLOSE_YAW = 0,
+
+
       APRIL_TAG_ERROR_THRESHOLD = 2.0,
       APRIL_TAG_YAW_ERROR_THRESHOLD = 5.0,
       CANNON_RPM_CLOSE = 1180,

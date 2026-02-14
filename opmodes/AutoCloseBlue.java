@@ -42,9 +42,8 @@ import org.firstinspires.ftc.teamcode.util.Constants;
 import java.util.List;
 
 
-
 @Autonomous
-public class AutoClose extends LinearOpMode {
+public class AutoCloseBlue extends LinearOpMode {
 
     private Robot robot;
 
@@ -52,8 +51,11 @@ public class AutoClose extends LinearOpMode {
     private DcMotor intakeMotor, cannonMotor;
     private Servo loadingServo;
 
-    int goalColor = 24;
+    int goalColor = 20;
 
+    double redCloseRange, redCloseX, redCloseY, redCloseYaw,
+    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw;
+    
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
     ColorSensor colorSensor;
@@ -103,6 +105,16 @@ public class AutoClose extends LinearOpMode {
         
         cannonMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        redCloseRange = Constants.RED_CLOSE_RANGE;
+        redCloseX = Constants.RED_CLOSE_X;
+        redCloseY = Constants.RED_CLOSE_Y;
+        redCloseYaw = Constants.RED_CLOSe_YAW;
+
+        blueCloseRange = Constants.BLUE_CLOSE_RANGE;
+        blueCloseX = Constants.BLUE_CLOSE_X;
+        blueCloseY = Constants.BLUE_CLOSE_Y;
+        blueCloseYaw = Constants.BLUE_CLOSE_YAW;
+
         initializeVisionPortal();
 
         telemetry.addData("Status", "Initialized");
@@ -111,34 +123,36 @@ public class AutoClose extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            robot.drive.moveTank(16, 0.5, 3);
-            robot.cannon.shootClose();
-            robot.drive.moveTurn(180, 0.5, 3);
-            sleep(2000);
-            robot.cannon.harpoonersFire();
-            sleep(500);
-            robot.cannon.reset();
-            sleep(3000);
-            robot.cannon.harpoonersFire();
-            sleep(2000);
+          robot.drive.moveTank(21,.7,8);
+          shootDemBalls("close");
+          sleep(5000);
+          shootDemBalls("close");
+          robot.intake.outtake();
+          sleep(200);
+          robot.intake.intake();
+          sleep(5000);
+          shootDemBalls("close");
+          sleep(1000);
+          if (targetID == 20) {
+            robot.drive.moveStrafe(-3, .5, 3);
+          } else {
+            robot.drive.moveStrafe(-3, .5, 3);
+          }
         }
     }
 
     public void shootDemBalls(String distance) {
-
         if (distance == "close") {
             robot.cannon.shootClose();
         } else if (distance == "far") {
             robot.cannon.shootFar();
         }
-
-        sleep(4000);
-
+        // Push ball into cannon wheel
         robot.cannon.harpoonersFire();
         sleep(1000);
-
+        // Reset load servo and wheel rpm
         robot.cannon.reset();
-        robot.cannon.idle();
+        robot.cannon.idle(); 
     }
 
     public void initializeVisionPortal() {
@@ -164,4 +178,135 @@ public class AutoClose extends LinearOpMode {
 
         visionPortal = visionPortalBuilder.build();
     }
+
+     public void findThatWhale() {
+            double targetX;
+            double targetY;
+            double targetRange;
+            double targetYaw;
+
+        if (targetID == 24) {
+            targetX = redCloseX;
+            targetY = redCloseY;
+            targetRange = redCloseRange;
+            targetYaw = redCloseYaw;
+        } else if (targetID == 20) {
+            targetX = blueCloseX;
+            targetY = blueCloseY;
+            targetRange = blueCloseRange;
+            targetYaw = blueCloseYaw;
+        } else {
+            return;
+        }
+
+        AprilTagDetection detection;
+        // Abandon all hope, ye who enter here.
+        while (opModeIsActive()) {
+            detection = null;
+            for (AprilTagDetection d : aprilTagProcessor.getDetections()) {
+                if (d.id == targetID && d.ftcPose != null) {
+                    detection = d;
+                    break;
+                }
+            }
+
+        if (detection == null) {
+            robot.drive.stop();
+            idle();
+            continue;
+        }
+
+        double yawError = detection.ftcPose.yaw - targetYaw;
+
+        if (Math.abs(yawError) <= aprilTagYawErrorThreshold) {
+            robot.drive.stop();
+            break;
+        }
+
+        double turn = yawError * 0.01;
+        turn = Math.max(-0.2, Math.min(0.2, turn));
+
+        robot.drive.setPower(
+            turn,
+           -turn,
+            turn,
+           -turn
+        );
+        idle();
+    }
+
+    while (opModeIsActive()) {
+        detection = null;
+        for (AprilTagDetection d : aprilTagProcessor.getDetections()) {
+            if (d.id == targetID && d.ftcPose != null) {
+                detection = d;
+                break;
+            }
+        }
+
+        if (detection == null) {
+            robot.drive.stop();
+            idle();
+            continue;
+        }
+
+        double xError = detection.ftcPose.x - targetX;
+
+        if (Math.abs(xError) <= aprilTagErrorThreshold) {
+            robot.drive.stop();
+            break;
+        }
+
+        double strafe = -xError * 0.15;
+        strafe = Math.max(-0.25, Math.min(0.25, strafe));
+
+        robot.drive.setPower(
+            strafe,
+           -strafe,
+           -strafe,
+            strafe
+        );
+        idle();
+    }
+
+    while (opModeIsActive()) {
+        detection = null;
+        for (AprilTagDetection d : aprilTagProcessor.getDetections()) {
+            if (d.id == targetID && d.ftcPose != null) {
+                detection = d;
+                break;
+            }
+        }
+
+        if (detection == null) {
+            robot.drive.stop();
+            idle();
+            continue;
+        }
+
+        double rangeError = detection.ftcPose.range - targetRange;
+
+        if (Math.abs(rangeError) <= aprilTagErrorThreshold) {
+            robot.drive.stop();
+            break;
+        }
+
+        double forward = rangeError * 0.15;
+        forward = Math.max(-0.25, Math.min(0.25, forward));
+
+        robot.drive.setPower(
+            forward,
+            forward,
+            forward,
+            forward
+        );
+        idle();
+    }
+    robot.drive.stop();
+    if (abort == false) {
+    shootDemBalls("close");
+    } else {
+        abort = false;
+    }
+}
 }

@@ -43,7 +43,7 @@ import java.util.List;
 
 
 @Autonomous
-public class AutoFarBlue extends LinearOpMode {
+public class AutoCloseBlue extends LinearOpMode {
 
     private Robot robot;
 
@@ -51,7 +51,7 @@ public class AutoFarBlue extends LinearOpMode {
     private DcMotor intakeMotor, cannonMotor;
     private Servo loadingServo;
 
-    int goalColor = 20;
+    int goalColor = 24;
 
     double redCloseRange, redCloseX, redCloseY, redCloseYaw,
     blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw;
@@ -123,15 +123,21 @@ public class AutoFarBlue extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            callMeIshmael();
-            findThatWhale();
-            sleep(2000);
-            findThatWhale();
-            robot.intake.outtake();
-            sleep(200);
-            robot.intake.intake();
-            sleep(2000);
-            findThatWhale();
+          robot.drive.moveTank(21,.7,8);
+          shootDemBalls("close");
+          sleep(5000);
+          shootDemBalls("close");
+          robot.intake.outtake();
+          sleep(200);
+          robot.intake.intake();
+          sleep(5000);
+          shootDemBalls("close");
+          sleep(1000);
+          if (targetID == 20) {
+            robot.drive.moveStrafe(-3, .5, 3);
+          } else {
+            robot.drive.moveStrafe(-3, .5, 3);
+          }
         }
     }
 
@@ -171,21 +177,6 @@ public class AutoFarBlue extends LinearOpMode {
                 .addProcessor(aprilTagProcessor);
 
         visionPortal = visionPortalBuilder.build();
-    }
-
-    public void callMeIshmael() {
-        if (gamepad2.dpad_up) {
-            if (targetID == 20) {
-                robot.drive.moveTank(2, .5, 2);
-                robot.drive.moveStrafe(-5, .5, 2);
-                robot.drive.moveTurn(-26, .5, 2);
-            }
-            if (targetID == 24) {
-                robot.drive.moveTank(2, .5, 2);
-                robot.drive.moveStrafe(5, .5, 2);
-                robot.drive.moveTurn(26, .5, 2);
-            }
-        }
     }
 
      public void findThatWhale() {

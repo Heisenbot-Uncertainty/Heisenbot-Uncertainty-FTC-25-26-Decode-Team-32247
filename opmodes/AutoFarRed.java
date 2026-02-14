@@ -42,7 +42,6 @@ import org.firstinspires.ftc.teamcode.util.Constants;
 import java.util.List;
 
 
-
 @Autonomous
 public class AutoFarRed extends LinearOpMode {
 
@@ -51,40 +50,12 @@ public class AutoFarRed extends LinearOpMode {
     private DcMotor leftRear, rightRear, leftFront, rightFront;
     private DcMotor intakeMotor, cannonMotor;
     private Servo loadingServo;
-    
-    double wheelPowerTiny;
-    double wheelPowerLarge;
-    double intakePower;
-    double cannonPowerClose;
-    double cannonPowerFar;
-    double loadMinPos;
-    double loadMaxPos;
-    double purpleRedPercentage;
-    double purpleGreenPercentage;
-    double purpleBluePercentage;
-    double greenRedPercentage;
-    double greenGreenPercentage;
-    double greenBluePercentage;
-    double blueFarRange;
-    double blueFarX;
-    double blueFarY;
-    double blueFarYaw;
-    double redFarRange;
-    double redFarX;
-    double redFarY;
-    double redFarYaw;
-    double errorThreshold;
-    double aprilTagErrorThreshold;
-    double aprilTagYawErrorThreshold;
-    
-    boolean manualMode = false;
-    boolean debugMode = false;
-    boolean toggle;
-    boolean abort = false;
-    int targetID = 24;
 
     int goalColor = 24;
 
+    double redCloseRange, redCloseX, redCloseY, redCloseYaw,
+    blueCloseRange, blueCloseX, blueCloseY, blueCloseYaw;
+    
     AprilTagProcessor aprilTagProcessor;
     VisionPortal visionPortal;
     ColorSensor colorSensor;
@@ -134,34 +105,15 @@ public class AutoFarRed extends LinearOpMode {
         
         cannonMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-wheelPowerTiny = Constants.WHEEL_POWER_TINY;
-        wheelPowerLarge = Constants.WHEEL_POWER_LARGE;
-        intakePower = Constants.INTAKE_POWER;
-        cannonPowerClose = Constants.CANNON_POWER_CLOSE;
-        cannonPowerFar = Constants.CANNON_POWER_FAR;
-        loadMinPos = Constants.LOAD_SERVO_MIN_POS;
-        loadMaxPos = Constants.LOAD_SERVO_MAX_POS;
-        purpleRedPercentage = Constants.PURPLE_RED_PERCENTAGE;
-        purpleGreenPercentage = Constants.PURPLE_GREEN_PERCENTAGE;
-        purpleBluePercentage = Constants.PURPLE_BLUE_PERCENTAGE;
-        greenRedPercentage = Constants.GREEN_RED_PERCENTAGE;
-        greenGreenPercentage = Constants.GREEN_GREEN_PERCENTAGE;
-        greenBluePercentage = Constants.GREEN_BLUE_PERCENTAGE;
-        errorThreshold = Constants.ERROR_THRESHOLD;
-        aprilTagErrorThreshold = Constants.APRIL_TAG_ERROR_THRESHOLD;
-        aprilTagYawErrorThreshold = Constants.APRIL_TAG_YAW_ERROR_THRESHOLD;
+        redCloseRange = Constants.RED_CLOSE_RANGE;
+        redCloseX = Constants.RED_CLOSE_X;
+        redCloseY = Constants.RED_CLOSE_Y;
+        redCloseYaw = Constants.RED_CLOSe_YAW;
 
-        blueFarRange = Constants.BLUE_FAR_RANGE;
-        blueFarX = Constants.BLUE_FAR_X;
-        blueFarY = Constants.BLUE_FAR_Y;
-        blueFarYaw = Constants.BLUE_FAR_YAW;
-        
-        redFarRange = Constants.RED_FAR_RANGE;
-        redFarX = Constants.RED_FAR_X;
-        redFarY = Constants.RED_FAR_Y;
-        redFarYaw = Constants.RED_FAR_YAW;
-
-
+        blueCloseRange = Constants.BLUE_CLOSE_RANGE;
+        blueCloseX = Constants.BLUE_CLOSE_X;
+        blueCloseY = Constants.BLUE_CLOSE_Y;
+        blueCloseYaw = Constants.BLUE_CLOSE_YAW;
 
         initializeVisionPortal();
 
@@ -171,32 +123,30 @@ wheelPowerTiny = Constants.WHEEL_POWER_TINY;
         waitForStart();
 
         if (opModeIsActive()) {
-            sleep(5000);
-            robot.drive.moveTank(3, .5, 3);
-            robot.drive.moveTurn(22, .5, 3);
-            robot.drive.moveStrafe(2, .5, 3);
+            callMeIshmael();
             findThatWhale();
-            shootDemBalls("far");
-            sleep(5000);
-            shootDemBalls("far");
+            sleep(2000);
+            findThatWhale();
+            robot.intake.outtake();
+            sleep(200);
+            robot.intake.intake();
+            sleep(2000);
+            findThatWhale();
         }
     }
 
     public void shootDemBalls(String distance) {
-
         if (distance == "close") {
             robot.cannon.shootClose();
         } else if (distance == "far") {
             robot.cannon.shootFar();
         }
-
-        sleep(4000);
-
+        // Push ball into cannon wheel
         robot.cannon.harpoonersFire();
-        sleep(5000);
-
+        sleep(1000);
+        // Reset load servo and wheel rpm
         robot.cannon.reset();
-        robot.cannon.idle();
+        robot.cannon.idle(); 
     }
 
     public void initializeVisionPortal() {
@@ -222,36 +172,45 @@ wheelPowerTiny = Constants.WHEEL_POWER_TINY;
 
         visionPortal = visionPortalBuilder.build();
     }
-    
-    public void findThatWhale() {
-        if (!gamepad2.rightBumperWasPressed()) return;
-        // For some reason doing "if (gamepad2.rightBumperWasPressed())" breaks this function
+
+    public void callMeIshmael() {
+        if (gamepad2.dpad_up) {
+            if (targetID == 20) {
+                robot.drive.moveTank(2, .5, 2);
+                robot.drive.moveStrafe(-5, .5, 2);
+                robot.drive.moveTurn(-26, .5, 2);
+            }
+            if (targetID == 24) {
+                robot.drive.moveTank(2, .5, 2);
+                robot.drive.moveStrafe(5, .5, 2);
+                robot.drive.moveTurn(26, .5, 2);
+            }
+        }
+    }
+
+     public void findThatWhale() {
             double targetX;
             double targetY;
             double targetRange;
             double targetYaw;
 
         if (targetID == 24) {
-            targetX = redFarX;
-            targetY = redFarY;
-            targetRange = redFarRange;
-            targetYaw = redFarYaw;
+            targetX = redCloseX;
+            targetY = redCloseY;
+            targetRange = redCloseRange;
+            targetYaw = redCloseYaw;
         } else if (targetID == 20) {
-            targetX = blueFarX;
-            targetY = blueFarY;
-            targetRange = blueFarRange;
-            targetYaw = blueFarYaw;
+            targetX = blueCloseX;
+            targetY = blueCloseY;
+            targetRange = blueCloseRange;
+            targetYaw = blueCloseYaw;
         } else {
             return;
         }
 
         AprilTagDetection detection;
-
+        // Abandon all hope, ye who enter here.
         while (opModeIsActive()) {
-            if (gamepad2.a) {
-                abort = true;
-                break;
-            }
             detection = null;
             for (AprilTagDetection d : aprilTagProcessor.getDetections()) {
                 if (d.id == targetID && d.ftcPose != null) {
@@ -283,16 +242,9 @@ wheelPowerTiny = Constants.WHEEL_POWER_TINY;
            -turn
         );
         idle();
-        if (gamepad2.a) {
-            break;
-        }
     }
 
     while (opModeIsActive()) {
-        if (gamepad2.a) {
-            abort = true;
-            break;
-            }
         detection = null;
         for (AprilTagDetection d : aprilTagProcessor.getDetections()) {
             if (d.id == targetID && d.ftcPose != null) {
@@ -327,10 +279,6 @@ wheelPowerTiny = Constants.WHEEL_POWER_TINY;
     }
 
     while (opModeIsActive()) {
-        if (gamepad2.a) {
-            abort = true;
-            break;
-            }
         detection = null;
         for (AprilTagDetection d : aprilTagProcessor.getDetections()) {
             if (d.id == targetID && d.ftcPose != null) {
@@ -365,60 +313,9 @@ wheelPowerTiny = Constants.WHEEL_POWER_TINY;
     }
     robot.drive.stop();
     if (abort == false) {
-    shootDemBalls("far");
+    shootDemBalls("close");
     } else {
         abort = false;
     }
 }
-
-    public void colorSensorMath() {
-        double total = colorSensor.red() + colorSensor.green() + colorSensor.blue();
-        double r = colorSensor.red() * 100.0 / total;
-        double g = colorSensor.green() * 100.0 / total;
-        double b = colorSensor.blue() * 100.0 / total;
-        double purpleError =
-            Math.abs(r - purpleRedPercentage) +
-            Math.abs(g - purpleGreenPercentage) +
-            Math.abs(b - purpleBluePercentage);
-        double greenError =
-            Math.abs(r - greenRedPercentage) +
-            Math.abs(g - greenGreenPercentage) +
-            Math.abs(b - greenBluePercentage);
-        if (purpleError < greenError && purpleError < errorThreshold) {
-            telemetry.addData("Color", "PURPLE");
-        } else if (greenError < purpleError && greenError < errorThreshold) {
-            telemetry.addData("Color", "GREEN");
-        } else {
-            telemetry.addData("Color", "NULL");
-        }
-    }
-
-    public void targetToggle() {
-        if (gamepad2.y && targetID == 20) {
-            targetID = 24;
-            toggle = true;
-        } else if (gamepad2.y && targetID == 24) {
-            sleep(500);
-            if (toggle == false) {
-            targetID = 20;
-            }
-        }
-            if (targetID == 20) {
-                telemetry.addData("Target", "BLU");
-            } else if (targetID == 24) {
-                telemetry.addData("Target", "RED");
-            }
-    }
-    
-    public void debugToggle() {
-        if ((gamepad1.a || gamepad2.a) && debugMode == false) {
-            debugMode = true;
-            toggle = true;
-        } else if ((gamepad1.a || gamepad2.a) && debugMode == true) {
-            sleep(500);
-            if (toggle == false) {
-                debugMode = false;  
-            }
-        }
-    }
 }
